@@ -6,13 +6,22 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import Since from '~/components/Since.astro';
 
 
-**Renderizado en el servidor**, también conocido como SSR (server side rendering), se puede habilitar en Astro. Cuando habilitas SSR puedes:
+El renderizado en el lado del servidor (SSR) se refiere a la generación de páginas HTML en el servidor bajo demanda y enviarlas al cliente.
 
-- Implementar sesiones para iniciar sesión en su aplicación.
+SSR te permite:
+- Implementar sesiones para iniciar sesión en tu aplicación.
 - Renderizar datos desde una llamada de API dinámicamente con `fetch`. 
-- Desplegar su sitio en un servidor usando un *adaptador*.
+- Desplegar tu sitio en un servidor usando un *adaptador*.
 
-## Habilitando SSR en su proyecto
+Considera habilitar el renderizado en el lado del servidor (SSR) en tu proyecto de Astro si necesitas lo siguiente:
+
+- **Endpoints de API**: SSR te permite crear páginas específicas que funcionan como endpoints de API para tareas como el acceso a bases de datos, la autenticación y la autorización, al tiempo que mantienen oculta la información confidencial del cliente.
+
+- **Páginas protegidas**: Si necesitas restringir el acceso a una página según los privilegios del usuario, puedes habilitar SSR para manejar el acceso del usuario en el servidor.
+
+- **Contenido que cambia con frecuencia**: Habilitar SSR te permite generar páginas individuales sin necesidad de reconstruir estáticamente todo tu sitio. Esto es útil cuando el contenido de una página se actualiza con frecuencia.
+
+## Habilitando SSR en tu proyecto
 
 Para hablitar las características SSR para despliegues en producción, actualiza tu configuración `output` a `'server'` o `'hybrid'` (introducido en **v2.6.0**). Ambos modos controlan cuales [páginas](/es/core-concepts/astro-pages/) o [endpoints del servidor](/es/core-concepts/endpoints/#endpoints-del-servidor-rutas-de-api) deben ser renderizados en el servidor. Cada opción de configuración tiene un comportamiento por defecto diferente, y permite que las rutas individuales opten por no utilizar el valor por defecto:
 
@@ -20,12 +29,14 @@ Para hablitar las características SSR para despliegues en producción, actualiz
 - __`output: 'hybrid'`__: Pre-renderizado a HTML por defecto. Utiliza esto cuando la mayoría de tu sitio debe ser estático. Cualquier página o endpoint individual puede *optar* por no pre-renderizar.
 
 
-```js ins={5}
+```js ins={6,7}
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
+import nodejs from '@astrojs/node';
 
 export default defineConfig({
-  output: 'server'
+  output: 'server',
+  adapter: nodejs(),
 });
 ```
 
@@ -47,12 +58,15 @@ Ver más ejemplos de uso de [configuración de rutas individuales](#configuraci�
 
 Para convertir un sitio Astro estático existente para permitir el renderizado híbrido, cambia la opción `output` a `'hybrid'` y añade un adaptador:
 
-```diff
+```js ins={2,5-8} title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-+ import nodejs from '@astrojs/node';
+import nodejs from '@astrojs/node';
+
 export default defineConfig({
-+ adapter: nodejs(),  
-+ output: 'hybrid',
+  adapter: nodejs({
+   mode: 'middleware' // or 'standalone'
+  }),  
+  output: 'hybrid',
 });
 ```
 
@@ -70,22 +84,22 @@ Los siguientes adaptadores están disponibles hoy y habrá muchos más en el fut
 
 #### Instalación usando `astro add`
 
-Puedes añadir cualquiera de los adaptadores oficiales con el comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso. Por ejemplo, para instalar el adaptador de Netlify, ejecuta:
+Puedes añadir cualquiera de los adaptadores oficiales con el comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso. Por ejemplo, para instalar el adaptador de Vercel, ejecuta:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  npx astro add netlify
+  npx astro add vercel
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm astro add netlify
+  pnpm astro add vercel
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  yarn astro add netlify
+  yarn astro add vercel
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -152,7 +166,7 @@ export const prerender = true;
 ```mdx title="src/pages/mypage.mdx" {5}
 ---
 layout: '../layouts/markdown.astro'
-title: 'My page'
+title: 'Mi página'
 ---
 export const prerender = true;
 # Esta es mi página estática, pre-renderizada
@@ -162,7 +176,7 @@ Y para un endpoint:
 
 ```js title="src/pages/myendpoint.js" {1}
 export const prerender = true;
-export async function get() {
+export async function GET() {
   return {
     body: JSON.stringify({ message: `Este es mi endpoint estático` }),
   };
@@ -175,10 +189,10 @@ Para un sitio principalmente estático configurado como `output: hybrid`, añade
 
 ```js title="src/pages/randomnumber.js" {1}
 export const prerender = false;
-export async function get() {
+export async function GET() {
   let number = Math.random();
   return {
-    body: JSON.stringify({ number, message: `Here's a random number: ${number}` }),
+    body: JSON.stringify({ number, message: `Aquí hay un número al azar: ${number}` }),
   };
 }
 ```
@@ -269,7 +283,7 @@ const product = await getProduct(Astro.params.id);
 if (!product) {
   return new Response(null, {
     status: 404,
-    statusText: 'Not found'
+    statusText: 'No encontrado'
   });
 }
 ---
@@ -303,12 +317,12 @@ const factData = await factResponse.json();
 ---
 <html>
   <head>
-    <title>A name and a fact</title>
+    <title>Un nombre y un hecho</title>
   </head>
   <body>
-    <h2>A name</h2>
+    <h2>Un nombre</h2>
     <p>{randomPerson.name.first}</p>
-    <h2>A fact</h2>
+    <h2>Un hecho</h2>
     <p>{factData.fact}</p>
   </body>
 </html>
@@ -342,12 +356,12 @@ import RandomFact from '../components/RandomFact.astro'
 ---
 <html>
   <head>
-    <title>A name and a fact</title>
+    <title>Un nombre y un hecho</title>
   </head>
   <body>
-    <h2>A name</h2>
+    <h2>Un nombre</h2>
     <RandomName />
-    <h2>A fact</h2>
+    <h2>Un hecho</h2>
     <RandomFact />
   </body>
 </html>
@@ -355,7 +369,7 @@ import RandomFact from '../components/RandomFact.astro'
 
 #### Incluyendo promesas directamente
 
-También puedes incluir promesas directamente en la plantilla. En lugar de bloquear todo el componente, solo bloqueará el marcado que viene después de él.
+También puedes incluir promesas directamente en la plantilla. En lugar de bloquear todo el componente, se resolverá la promesa en paralelo y solo se bloqueará el marcado que viene después de ella.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -368,15 +382,17 @@ const factPromise = fetch('https://catfact.ninja/fact')
 ---
 <html>
   <head>
-    <title>A name and a fact</title>
+    <title>Un nombre y un hecho</title>
   </head>
   <body>
-    <h2>A name</h2>
+    <h2>Un nombre</h2>
     <p>{personPromise}</p>
-    <h2>A fact</h2>
+    <h2>Un hecho</h2>
     <p>{factPromise}</p>
   </body>
 </html>
 ```
 
-En este ejemplo, `A name` se renderizará mientras se carga `personPromise`. En ese momento, aparecerá `A fact` mientras se carga `factPromise`.
+En este ejemplo, `Un nombre` se renderizará mientras se cargan `personPromise` y `factPromise`.
+
+Una vez que `personPromise` se haya resuelto, aparecerá `Un hecho` y `factPromise` se mostrará cuando haya terminado de cargarse.

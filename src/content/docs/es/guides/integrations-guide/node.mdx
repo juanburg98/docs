@@ -33,6 +33,8 @@ yarn astro add node
 pnpm astro add node
 ```
 
+### Añadir dependencias manualmente
+
 Si prefieres instalar el adaptador manualmente, completa los siguientes dos pasos:
 
 1.  Instala el adaptador de Node a las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
@@ -51,7 +53,7 @@ Si prefieres instalar el adaptador manualmente, completa los siguientes dos paso
     export default defineConfig({
       output: 'server',
       adapter: node({
-        mode: 'standalone'
+        mode: 'standalone',
       }),
     });
     ```
@@ -65,6 +67,7 @@ Si prefieres instalar el adaptador manualmente, completa los siguientes dos paso
 Controla si el adaptador construye en modo `middleware` o `standalone`.
 
 *   El modo `middleware` permite que la salida generada se utilice como middleware para otro servidor de Node.js, como Express.js o Fastify.
+
     ```js
     import { defineConfig } from 'astro/config';
     import node from '@astrojs/node';
@@ -72,10 +75,11 @@ Controla si el adaptador construye en modo `middleware` o `standalone`.
     export default defineConfig({
       output: 'server',
       adapter: node({
-        mode: 'middleware'
+        mode: 'middleware',
       }),
     });
     ```
+
 *   El modo `standalone` permite construir un servidor se que inicia automáticamente cuando el módulo de entrada se ejecuta. Esto te permite desplegar tu construcción a un host sin ningún código adicional.
 
 ## Uso
@@ -93,7 +97,10 @@ import express from 'express';
 import { handler as ssrHandler } from './dist/server/entry.mjs';
 
 const app = express();
-app.use(express.static('dist/client/'))
+// Modifica esto en función de la opción `base` de tu archivo astro.config.mjs.
+// Deben coincidir. El valor predeterminado es "/".
+const base = '/'
+app.use(base, express.static('dist/client/'));
 app.use(ssrHandler);
 
 app.listen(8080);
@@ -105,7 +112,7 @@ O, con Fastify (>4):
 import Fastify from 'fastify';
 import fastifyMiddie from '@fastify/middie';
 import fastifyStatic from '@fastify/static';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import { handler as ssrHandler } from './dist/server/entry.mjs';
 
 const app = Fastify({ logger: true });
@@ -118,6 +125,24 @@ await app
 app.use(ssrHandler);
 
 app.listen({ port: 8080 });
+```
+
+Además, también puedes pasar un objeto para acceder a través de `Astro.locals` o en el middleware de Astro:
+```js
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+app.use(express.static('dist/client/'));
+app.use((req, res, next) => {
+  const locals = {
+    title: 'Nuevo título',
+  };
+
+  ssrHandler(req, res, next, locals);
+});
+
+app.listen(8080);
 ```
 
 Ten en cuenta que el modo middleware no sirve de archivos. Necesitarás configurar tu framework HTTP para que lo haga por ti. De forma predeterminada, los activos del cliente se escriben en `./dist/client/`.
@@ -137,7 +162,7 @@ Para el modo standalone, el servidor maneja el servidor de archivos además de l
 Puedes anular el host y el puerto en los que se ejecuta el servidor independiente pasándolos como variables de entorno en tiempo de ejecución:
 
 ```shell
-HOST=0.0.0.0 PORT=3000 node ./dist/server/entry.mjs
+HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
 ```
 
 #### HTTPS
@@ -150,26 +175,38 @@ Puedes pasar la ruta a tu llave y certificado a través de las variables de ento
 SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
 ```
 
+#### Variables de entorno en tiempo de ejecución
+
+Si existe un archivo `.env` que contiene variables de entorno está presente cuando se ejecuta el proceso de construcción, estos valores se codificarán en la salida, al igual que al generar un sitio web estático.
+
+Durante la compilación, las variables de tiempo de ejecución deben estar ausentes del archivo `.env`, y debes proporcionar a Astro todas las variables de entorno que esperas en tiempo de ejecución: `VARIABLE_1=placeholder astro build`. Esto le indica a Astro que el valor real estará disponible cuando se ejecute la aplicación construida. El valor de marcador de posición será ignorado por el proceso de construcción, y Astro usará el valor proporcionado en tiempo de ejecución.
+
+En este caso de múltiples variables de tiempo de ejecución, almacénalas en un archivo separado (por ejemplo, `.env.runtime`) de `.env`. Inicia la construcción con el siguiente comando:
+
+```sh
+export $(cat .env.runtime) && astro build
+```
+
 ## Solución de problemas
 
 ### SyntaxError: Export nombrado 'compile' no encontrado
 
-Puedes ver esto cuando ejecutas el script de entrada si fue construido con npm o Yarn. Este es un [problema conocido](https://github.com/withastro/astro/issues/4974) que será arreglado en una versión futura. Como solución alternativa, agrega `"path-to-regexp"` al array `noExternal`:
+Puedes ver esto cuando ejecutas el script de entrada si fue construido con npm o Yarn. Este es un problema conocido que será arreglado en una versión futura. Como solución alternativa, agrega `"path-to-regexp"` al array `noExternal`:
 
 ```js ins={9-13}
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
 
-import node from "@astrojs/node";
+import node from '@astrojs/node';
 
 export default defineConfig({
   output: "server",
   adapter: node(),
   vite: {
     ssr: {
-      noExternal: ["path-to-regexp"]
-    }
-  }
+      noExternal: ['path-to-regexp'],
+    },
+  },
 });
 ```
 

@@ -39,6 +39,7 @@ export default UIDictionary({
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': '添加于：',
 	'since.new': '新',
+	'since.beta': 'Beta',
 	// Installation Guide
 	'install.autoTab': '自动化命令行',
 	'install.manualTab': '手动设置',
@@ -71,8 +72,6 @@ export default UIDictionary({
 	'aside.tip': '提示',
 	'aside.caution': '警告',
 	'aside.danger': '危险',
-	// `<CodeSnippet>` vocabulary
-	'codeSnippet.terminalCaption': '终端窗口',
 	// `<LanguageSelect>` vocabulary
 	'languageSelect.label': '选择语言',
 	// Integrations vocabulary
@@ -111,9 +110,16 @@ export default UIDictionary({
 	'feedback.success': '感谢！我们收到了你的反馈。',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': '目录',
-	// CopyButton class in `<CodeSnippet>` component
-	'copyButton.title': '复制到剪贴板',
-	'copyButton.tooltip': '复制成功！',
+	// Code snippet vocabulary
+	'expressiveCode.terminalWindowFallbackTitle': '终端窗口',
+	'expressiveCode.copyButtonTooltip': '复制到剪贴板',
+	'expressiveCode.copyButtonCopied': '复制成功！',
 	// Backend Guides vocabulary
 	'backend.navTitle': '更多后端服务指南',
+	'stub.title': '完善本篇！',
+	'stub.subtitle': '此页面尚未完成。',
+	'stub.description.migration':
+		'想为这个指南做贡献吗？有关于从这项技术迁移到 Astro 的博客、视频或其他资源？',
+	'stub.description.cms': '了解更多在 Astro 使用此 CMS 的信息？',
+	'stub.description.backend': '了解更多在 Astro 使用此后端服务的信息？',
 });

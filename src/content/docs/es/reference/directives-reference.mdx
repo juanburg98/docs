@@ -26,22 +26,20 @@ Una directiva de maquetado nunca se incluye directamente en el HTML del compilad
 
 ### `class:list`
 
-`class:list={...}` toma un array de clases y los convierte en un string. Esto está inspirado en la popular biblioteca auxiliar [clsx](https://github.com/lukeed/clsx) de @lukeed, pero integrado directamente en Astro.
+`class:list={...}` toma un array de clases y los convierte en un string. Esto está impulsado por la popular biblioteca auxiliar de [@lukeed](https://github.com/lukeed/clsx) llamada [clsx](https://github.com/lukeed/clsx).
 
 `class:list` toma un array de varios tipos de valores posibles diferentes:
 - `string`: Agregado al elemento `class`
 - `Object`: Todas las keys verdaderas se agregan al elemento `class`
 - `Array`: aplanado
-- `Set`: aplanado
+- `false`, `null`, o `undefined`: Omitido
 
 ```astro
 <!-- Esto -->
-<span class:list={[ 'hello goodbye', { hello: true, world: true }, new Set([ 'hello', 'friend' ]) ]} />
+<span class:list={[ 'hello goodbye', { world: true }, [ 'friend' ] ]} />
 <!-- Se convierte en -->
 <span class="hello goodbye world friend"></span>
 ```
-
-Los valores duplicados se eliminan automáticamente.
 
 ### `set:html`
 
@@ -202,7 +200,7 @@ La directiva `is:inline` está implícita cada vez que se usa cualquier atributo
 </script>
 ```
 
-📚 Vea cómo funcionan los [scripts del lado del cliente](/es/guides/client-side-scripts/) en los componentes de Astro.
+📚 Mira cómo funcionan los [scripts del lado del cliente](/es/guides/client-side-scripts/) en los componentes de Astro.
 
 ### `define:vars`
 
